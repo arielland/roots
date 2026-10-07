@@ -216,6 +216,8 @@
         (s.details.length ? '<div class="seg-details">' + esc(s.details.join(", ")) + "</div>" : "") + "</div></div>");
     }
     h.push("</div>");
+    const he = App.gloss(a.mainLemma);
+    if (he) h.push('<p class="fb-roots">פירוש: <b>' + esc(he.g) + "</b></p>");
     if (item.roots.length) {
       h.push('<p class="fb-roots">השורש: ' + item.roots.map((r) =>
         "<b class=\"heb-inline\">" + esc(Roots.displayRoot(r.root)) + "</b> <span class=\"muted\">(" +
