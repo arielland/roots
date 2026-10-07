@@ -211,7 +211,8 @@
       const n = lemmaCounts.get(l);
       const pos = POS[e.pos] || POS[(e.pos || "")[0]] || "";
       h.push('<button type="button" class="chip" data-filter="lemma:' + App.esc(l) + '"' +
-        ' title="' + App.esc(e.def || "") + '"><span class="heb-inline">' + App.esc(e.w) + "</span> " +
+        ' title="' + App.esc((App.gloss(l) || {}).g || e.def || "") + '"><span class="heb-inline">' + App.esc(e.w) + "</span> " +
+        (App.gloss(l) ? '<span class="chip-gloss">' + App.esc(App.gloss(l).g) + "</span> " : "") +
         '<span class="muted">' + App.esc(pos) + "</span> <b>" + n + "</b></button>");
     }
     h.push("</div>");
