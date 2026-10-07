@@ -1,0 +1,236 @@
+[
+ {
+  "code": "Gen",
+  "name": "בראשית",
+  "section": "תורה",
+  "chapters": 50
+ },
+ {
+  "code": "Exod",
+  "name": "שמות",
+  "section": "תורה",
+  "chapters": 40
+ },
+ {
+  "code": "Lev",
+  "name": "ויקרא",
+  "section": "תורה",
+  "chapters": 27
+ },
+ {
+  "code": "Num",
+  "name": "במדבר",
+  "section": "תורה",
+  "chapters": 36
+ },
+ {
+  "code": "Deut",
+  "name": "דברים",
+  "section": "תורה",
+  "chapters": 34
+ },
+ {
+  "code": "Josh",
+  "name": "יהושע",
+  "section": "נביאים",
+  "chapters": 24
+ },
+ {
+  "code": "Judg",
+  "name": "שופטים",
+  "section": "נביאים",
+  "chapters": 21
+ },
+ {
+  "code": "1Sam",
+  "name": "שמואל א",
+  "section": "נביאים",
+  "chapters": 31
+ },
+ {
+  "code": "2Sam",
+  "name": "שמואל ב",
+  "section": "נביאים",
+  "chapters": 24
+ },
+ {
+  "code": "1Kgs",
+  "name": "מלכים א",
+  "section": "נביאים",
+  "chapters": 22
+ },
+ {
+  "code": "2Kgs",
+  "name": "מלכים ב",
+  "section": "נביאים",
+  "chapters": 25
+ },
+ {
+  "code": "Isa",
+  "name": "ישעיהו",
+  "section": "נביאים",
+  "chapters": 66
+ },
+ {
+  "code": "Jer",
+  "name": "ירמיהו",
+  "section": "נביאים",
+  "chapters": 52
+ },
+ {
+  "code": "Ezek",
+  "name": "יחזקאל",
+  "section": "נביאים",
+  "chapters": 48
+ },
+ {
+  "code": "Hos",
+  "name": "הושע",
+  "section": "נביאים",
+  "chapters": 14
+ },
+ {
+  "code": "Joel",
+  "name": "יואל",
+  "section": "נביאים",
+  "chapters": 4
+ },
+ {
+  "code": "Amos",
+  "name": "עמוס",
+  "section": "נביאים",
+  "chapters": 9
+ },
+ {
+  "code": "Obad",
+  "name": "עובדיה",
+  "section": "נביאים",
+  "chapters": 1
+ },
+ {
+  "code": "Jonah",
+  "name": "יונה",
+  "section": "נביאים",
+  "chapters": 4
+ },
+ {
+  "code": "Mic",
+  "name": "מיכה",
+  "section": "נביאים",
+  "chapters": 7
+ },
+ {
+  "code": "Nah",
+  "name": "נחום",
+  "section": "נביאים",
+  "chapters": 3
+ },
+ {
+  "code": "Hab",
+  "name": "חבקוק",
+  "section": "נביאים",
+  "chapters": 3
+ },
+ {
+  "code": "Zeph",
+  "name": "צפניה",
+  "section": "נביאים",
+  "chapters": 3
+ },
+ {
+  "code": "Hag",
+  "name": "חגי",
+  "section": "נביאים",
+  "chapters": 2
+ },
+ {
+  "code": "Zech",
+  "name": "זכריה",
+  "section": "נביאים",
+  "chapters": 14
+ },
+ {
+  "code": "Mal",
+  "name": "מלאכי",
+  "section": "נביאים",
+  "chapters": 3
+ },
+ {
+  "code": "Ps",
+  "name": "תהלים",
+  "section": "כתובים",
+  "chapters": 150
+ },
+ {
+  "code": "Prov",
+  "name": "משלי",
+  "section": "כתובים",
+  "chapters": 31
+ },
+ {
+  "code": "Job",
+  "name": "איוב",
+  "section": "כתובים",
+  "chapters": 42
+ },
+ {
+  "code": "Song",
+  "name": "שיר השירים",
+  "section": "כתובים",
+  "chapters": 8
+ },
+ {
+  "code": "Ruth",
+  "name": "רות",
+  "section": "כתובים",
+  "chapters": 4
+ },
+ {
+  "code": "Lam",
+  "name": "איכה",
+  "section": "כתובים",
+  "chapters": 5
+ },
+ {
+  "code": "Eccl",
+  "name": "קהלת",
+  "section": "כתובים",
+  "chapters": 12
+ },
+ {
+  "code": "Esth",
+  "name": "אסתר",
+  "section": "כתובים",
+  "chapters": 10
+ },
+ {
+  "code": "Dan",
+  "name": "דניאל",
+  "section": "כתובים",
+  "chapters": 12
+ },
+ {
+  "code": "Ezra",
+  "name": "עזרא",
+  "section": "כתובים",
+  "chapters": 10
+ },
+ {
+  "code": "Neh",
+  "name": "נחמיה",
+  "section": "כתובים",
+  "chapters": 13
+ },
+ {
+  "code": "1Chr",
+  "name": "דברי הימים א",
+  "section": "כתובים",
+  "chapters": 29
+ },
+ {
+  "code": "2Chr",
+  "name": "דברי הימים ב",
+  "section": "כתובים",
+  "chapters": 36
+ }
+]

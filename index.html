@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>שורשים – לימוד לשון מן המקרא</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@400;600&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand">שורשים</h1>
+    <nav class="nav">
+      <select id="book" aria-label="ספר"></select>
+      <button id="prev" class="icon" title="הפרק הקודם" aria-label="הפרק הקודם">›</button>
+      <select id="chapter" aria-label="פרק"></select>
+      <button id="next" class="icon" title="הפרק הבא" aria-label="הפרק הבא">‹</button>
+    </nav>
+    <div class="options">
+      <label title="הצגת טעמי המקרא"><input type="checkbox" id="opt-teamim"> טעמים</label>
+      <label title="צביעת תחיליות וסופיות"><input type="checkbox" id="opt-segments" checked> חלקי מילה</label>
+      <button id="smaller" class="icon" title="הקטנת גופן" aria-label="הקטנת גופן">א-</button>
+      <button id="larger" class="icon" title="הגדלת גופן" aria-label="הגדלת גופן">א+</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <article id="text" class="text" aria-live="polite">
+      <p class="loading">טוען…</p>
+    </article>
+    <aside id="panel" class="panel" hidden>
+      <button id="close-panel" class="close" aria-label="סגירה">×</button>
+      <div id="panel-body"></div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    לחצו על מילה כדי לראות את השורש, הבניין והנטייה שלה.
+    נוסח: כתב יד לנינגרד (Westminster Leningrad Codex). ניתוח צורני:
+    <a href="https://hb.openscriptures.org/" target="_blank" rel="noopener">Open Scriptures Hebrew Bible</a> (CC BY 4.0);
+    שורשים: מילון BDB ומילון Strong מתוך
+    <a href="https://github.com/openscriptures/HebrewLexicon" target="_blank" rel="noopener">HebrewLexicon</a>.
+  </footer>
+
+  <script src="js/morph.js"></script>
+  <script src="js/roots.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

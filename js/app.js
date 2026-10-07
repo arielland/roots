@@ -1,0 +1,408 @@
+// שורשים – main app: loading data, rendering text, word panel.
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    books: [],
+    book: null, // loaded book JSON
+    chapter: 0,
+    lexicon: null,
+    selected: null,
+    opts: loadOpts(),
+  };
+  const bookCache = {};
+  const rootKeyCache = {};
+
+  // ------------------------------------------------------------ helpers
+
+  function loadOpts() {
+    const defaults = { teamim: false, segments: true, size: 28 };
+    try {
+      return Object.assign(defaults, JSON.parse(localStorage.getItem("roots-opts") || "{}"));
+    } catch (e) {
+      return defaults;
+    }
+  }
+  function saveOpts() {
+    try { localStorage.setItem("roots-opts", JSON.stringify(state.opts)); } catch (e) { /* ignore */ }
+  }
+
+  const TEAMIM = /[֑-ֽׅ֯ׄ]/g;
+  function clean(text) {
+    const t = text.replace(/\//g, "");
+    return state.opts.teamim ? t : t.replace(TEAMIM, "");
+  }
+  function cleanSeg(text) {
+    return state.opts.teamim ? text : text.replace(TEAMIM, "");
+  }
+
+  function hebNum(n) {
+    const ones = ["", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"];
+    const tens = ["", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ"];
+    const hundreds = ["", "ק", "ר", "ש", "ת"];
+    let s = "";
+    while (n >= 400) { s += "ת"; n -= 400; }
+    s += hundreds[Math.floor(n / 100)];
+    n %= 100;
+    if (n === 15) return s + "טו";
+    if (n === 16) return s + "טז";
+    return s + tens[Math.floor(n / 10)] + ones[n % 10];
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+
+  function mainLemmaOf(lemma) {
+    const parts = lemma.replace(/\s+/g, "").replace(/\+/g, "").split("/");
+    return parts[parts.length - 1];
+  }
+
+  function rootKeysFor(lemma, morph) {
+    if (!lemma) return [];
+    const main = mainLemmaOf(lemma);
+    if (!(main in rootKeyCache)) {
+      const entry = state.lexicon[main];
+      const codes = morph.slice(1).split("/");
+      const mainCode = codes[Math.min(lemma.split("/").length - 1, codes.length - 1)];
+      rootKeyCache[main] = Roots.rootOpinions(entry, mainCode).roots.map((r) => r.key);
+    }
+    return rootKeyCache[main];
+  }
+
+  // ------------------------------------------------------------ loading
+
+  async function getJSON(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(url + ": " + res.status);
+    return res.json();
+  }
+
+  async function loadBook(code) {
+    if (!bookCache[code]) bookCache[code] = getJSON("data/books/" + code + ".json");
+    return bookCache[code];
+  }
+
+  function parseHash() {
+    const m = location.hash.match(/^#([^.]+)\.(\d+)/);
+    if (m && state.books.some((b) => b.code === m[1])) return { code: m[1], chapter: +m[2] - 1 };
+    let last = null;
+    try { last = JSON.parse(localStorage.getItem("roots-last") || "null"); } catch (e) { /* ignore */ }
+    if (last && state.books.some((b) => b.code === last.code)) return last;
+    return { code: "Ezek", chapter: 0 };
+  }
+
+  async function go(code, chapter) {
+    const meta = state.books.find((b) => b.code === code);
+    chapter = Math.max(0, Math.min(chapter, meta.chapters - 1));
+    $("text").innerHTML = '<p class="loading">טוען…</p>';
+    state.book = await loadBook(code);
+    state.chapter = chapter;
+    const hash = "#" + code + "." + (chapter + 1);
+    if (location.hash !== hash) history.replaceState(null, "", hash);
+    try { localStorage.setItem("roots-last", JSON.stringify({ code, chapter })); } catch (e) { /* ignore */ }
+    fillChapterSelect(meta);
+    $("book").value = code;
+    $("chapter").value = chapter;
+    closePanel();
+    renderChapter();
+    window.scrollTo(0, 0);
+  }
+
+  // ------------------------------------------------------------ rendering
+
+  function fillBookSelect() {
+    const sel = $("book");
+    sel.innerHTML = "";
+    let group = null;
+    for (const b of state.books) {
+      if (!group || group.label !== b.section) {
+        group = document.createElement("optgroup");
+        group.label = b.section;
+        sel.appendChild(group);
+      }
+      const o = document.createElement("option");
+      o.value = b.code;
+      o.textContent = b.name;
+      group.appendChild(o);
+    }
+  }
+
+  function fillChapterSelect(meta) {
+    const sel = $("chapter");
+    if (sel.dataset.book === meta.code) return;
+    sel.dataset.book = meta.code;
+    sel.innerHTML = "";
+    for (let i = 0; i < meta.chapters; i++) {
+      const o = document.createElement("option");
+      o.value = i;
+      o.textContent = "פרק " + hebNum(i + 1);
+      sel.appendChild(o);
+    }
+  }
+
+  function wordHTML(word, v, i, q) {
+    const [text, lemma, morph] = word;
+    let inner;
+    if (state.opts.segments && morph && text.includes("/")) {
+      const a = Morph.analyzeWord(text, lemma, morph);
+      inner = a.segments
+        .map((s) => (s.role === "main" ? esc(cleanSeg(s.text)) : '<span class="seg-' + s.role + '">' + esc(cleanSeg(s.text)) + "</span>"))
+        .join("");
+    } else {
+      inner = esc(clean(text));
+    }
+    return '<span class="w" tabindex="0" data-v="' + v + '" data-i="' + i + '" data-q="' + q + '">' + inner + "</span>";
+  }
+
+  function sepHTML(sep) {
+    if (!sep) return " ";
+    let out = "";
+    for (const ch of sep) {
+      if (ch === "־") out += "־";
+      else if (ch === "׃") out += "׃ ";
+      else if (ch === "׀") out += " ׀ ";
+      else if (ch === "פ") out += '<span class="petucha" title="פרשה פתוחה"></span>';
+      else if (ch === "ס") out += '<span class="setuma" title="פרשה סתומה">ס</span> ';
+    }
+    return out.endsWith("־") || out.endsWith(" ") || out.endsWith("</span>") ? out : out + " ";
+  }
+
+  function renderChapter() {
+    const verses = state.book.chapters[state.chapter];
+    const parts = ["<h2>" + esc(state.book.name) + " פרק " + hebNum(state.chapter + 1) + "</h2>"];
+    verses.forEach((tokens, v) => {
+      parts.push('<span class="verse-num">' + hebNum(v + 1) + "</span>");
+      tokens.forEach((tok, i) => {
+        const qere = tok[4];
+        if (qere) {
+          qere.forEach((qw, qi) => {
+            parts.push(wordHTML(qw, v, i, qi));
+            if (qi < qere.length - 1) parts.push(" ");
+          });
+          if (tok[0]) parts.push('<span class="ketiv" title="כתיב">(' + esc(tok[0].replace(/\//g, "")) + ")</span>");
+        } else {
+          parts.push(wordHTML(tok, v, i, -1));
+        }
+        parts.push(sepHTML(tok[3]));
+      });
+    });
+    const el = $("text");
+    el.innerHTML = parts.join("");
+    el.classList.toggle("show-segments", state.opts.segments);
+    document.documentElement.style.setProperty("--text-size", state.opts.size + "px");
+    if (state.selected) highlight(state.selected);
+  }
+
+  function getWord(v, i, q) {
+    const tok = state.book.chapters[state.chapter][v][i];
+    return { tok, word: q >= 0 ? tok[4][q] : tok };
+  }
+
+  // ------------------------------------------------------------ panel
+
+  function highlight(sel) {
+    const text = $("text");
+    text.querySelectorAll(".w.selected, .w.same-root").forEach((e) => e.classList.remove("selected", "same-root"));
+    const { word } = getWord(sel.v, sel.i, sel.q);
+    const keys = rootKeysFor(word[1], word[2]);
+    let count = 0;
+    text.querySelectorAll(".w").forEach((el) => {
+      const v = +el.dataset.v, i = +el.dataset.i, q = +el.dataset.q;
+      if (v === sel.v && i === sel.i && q === sel.q) {
+        el.classList.add("selected");
+        return;
+      }
+      if (!keys.length) return;
+      const w = getWord(v, i, q).word;
+      const k2 = rootKeysFor(w[1], w[2]);
+      if (k2.some((k) => keys.includes(k))) {
+        el.classList.add("same-root");
+        count++;
+      }
+    });
+    return count;
+  }
+
+  function closePanel() {
+    state.selected = null;
+    $("panel").hidden = true;
+    document.querySelector(".layout").classList.remove("with-panel");
+    document.body.classList.remove("panel-open");
+    $("text").querySelectorAll(".w.selected, .w.same-root").forEach((e) => e.classList.remove("selected", "same-root"));
+  }
+
+  const ROLE = { prefix: "תחילית", main: "בסיס", suffix: "סופית" };
+
+  function showWord(v, i, q) {
+    state.selected = { v, i, q };
+    const { tok, word } = getWord(v, i, q);
+    const [text, lemma, morph] = word;
+    const sameRootCount = highlight(state.selected);
+    const a = Morph.analyzeWord(text, lemma, morph);
+    const entry = state.lexicon[a.mainLemma];
+    const { roots, reason, strongNote } = Roots.rootOpinions(entry, a.main.code);
+    const ref = state.book.name + " " + hebNum(state.chapter + 1) + ", " + hebNum(v + 1);
+
+    const h = [];
+    h.push('<p class="word-title">' + esc(clean(text)) + "</p>");
+    h.push('<div class="word-ref">' + esc(ref) + (a.lang === "A" ? " · ארמית" : "") + "</div>");
+
+    if (q >= 0) {
+      h.push('<p class="muted">' + (tok[0]
+        ? "כתיב וקרי: בכתוב <span class=\"heb-inline\">" + esc(tok[0].replace(/\//g, "")) + "</span>, וקוראים <span class=\"heb-inline\">" + esc(tok[4].map((w) => clean(w[0])).join(" ")) + "</span>. הניתוח הוא של הקרי."
+        : "קרי ולא כתיב: מילה שנקראת אף שאינה כתובה בטקסט.") + "</p>");
+    }
+
+    // --- word structure
+    h.push("<h3>פירוק המילה</h3><div class=\"segments\">");
+    for (const s of a.segments) {
+      h.push('<div class="segment ' + s.role + '"><div class="seg-text">' + esc(cleanSeg(s.text)) + "</div><div>" +
+        '<div class="seg-title">' + esc(s.title) + '<span class="seg-role">' + ROLE[s.role] + "</span></div>" +
+        (s.details.length ? '<div class="seg-details">' + esc(s.details.join(", ")) + "</div>" : "") +
+        "</div></div>");
+    }
+    h.push("</div>");
+
+    // --- roots
+    h.push("<h3>השורש</h3>");
+    if (roots.length > 1) {
+      h.push('<p class="consensus">יש כמה דעות לגבי שורש המילה:</p>');
+    } else if (roots.length === 1 && roots[0].sources.length > 1) {
+      h.push('<p class="consensus">המילונים מסכימים על השורש.</p>');
+    }
+    for (const r of roots) {
+      h.push('<div class="root-card"><div class="root-letters">' + esc(Roots.displayRoot(r.root)) + "</div>");
+      h.push('<ul class="sources">');
+      for (const s of r.sources) {
+        const bits = [];
+        if (s.path && s.path.length) bits.push("נגזר מ: <span class=\"heb-inline\">" + esc(s.path.join(" ← ")) + "</span>");
+        if (s.via) bits.push("דרך <span class=\"heb-inline\">" + esc(s.via) + "</span>");
+        if (s.unattested) bits.push(esc(s.unattested));
+        let badges = '<span class="badge" title="' + esc(s.full) + '">' + esc(s.name) + "</span>";
+        if (s.uncertain) badges += '<span class="badge warn">משוער</span>';
+        if (s.cognate) badges += '<span class="badge warn">מקביל עברי</span>';
+        h.push("<li>" + badges + bits.join(" · ") + (s.def ? '<div class="root-def">' + esc(s.def) + "</div>" : "") + "</li>");
+      }
+      h.push("</ul>");
+      const gz = Roots.gizrot(r.root);
+      if (gz.length) {
+        h.push('<ul class="gizra">' + gz.map(([name, expl]) => "<li><b>" + esc(name) + ":</b> " + esc(expl) + "</li>").join("") + "</ul>");
+      }
+      h.push("</div>");
+    }
+    if (strongNote) h.push('<p class="muted"><span class="badge">Strong</span>' + esc(strongNote) + "</p>");
+    if (!roots.length) h.push('<p class="muted">' + esc(reason) + "</p>");
+    if (roots.length) {
+      h.push('<p class="root-count">' + (sameRootCount
+        ? "מילים נוספות מאותו שורש בפרק: <b>" + sameRootCount + "</b> (מסומנות בטקסט)."
+        : "אין בפרק זה מילים נוספות מאותו שורש.") + "</p>");
+    }
+
+    // --- grammar notes
+    const notes = a.segments.flatMap((s) => s.notes);
+    if (notes.length) {
+      h.push("<h3>הסבר דקדוקי</h3><ul class=\"notes\">");
+      for (const [t, e] of notes) h.push("<li><b>" + esc(t) + ":</b> " + esc(e) + "</li>");
+      h.push("</ul>");
+    }
+
+    // --- dictionary
+    if (entry) {
+      h.push("<h3>מילון</h3><div class=\"lex\">");
+      h.push('<div><span class="heb-inline">' + esc(entry.w) + "</span>" + (entry.strong ? ' <span class="muted">(Strong H' + esc(entry.strong.n) + ")</span>" : "") + "</div>");
+      if (entry.def) h.push('<div class="gloss">BDB: ' + esc(entry.def) + "</div>");
+      if (entry.strong && entry.strong.def) h.push('<div class="gloss">Strong: ' + esc(entry.strong.def) + "</div>");
+      if (entry.strong && entry.strong.src) h.push('<div class="gloss muted">Strong derivation: ' + esc(entry.strong.src) + "</div>");
+      h.push("</div>");
+    }
+    h.push('<p class="muted">קוד ניתוח: <code dir="ltr">' + esc(morph) + "</code> · למה: <code dir=\"ltr\">" + esc(lemma) + "</code></p>");
+
+    $("panel-body").innerHTML = h.join("");
+    $("panel").hidden = false;
+    $("panel").scrollTop = 0;
+    document.querySelector(".layout").classList.add("with-panel");
+    document.body.classList.add("panel-open");
+    if (window.matchMedia("(max-width: 900px)").matches) {
+      // On phones the panel is a bottom sheet: keep the chosen word visible above it.
+      const el = $("text").querySelector(".w.selected");
+      if (el) {
+        const top = el.getBoundingClientRect().top;
+        const want = window.innerHeight * 0.2;
+        if (top > window.innerHeight * 0.38 || top < 60) window.scrollBy({ top: top - want, behavior: "smooth" });
+      }
+    }
+  }
+
+  // ------------------------------------------------------------ events
+
+  function bind() {
+    $("book").addEventListener("change", (e) => go(e.target.value, 0));
+    $("chapter").addEventListener("change", (e) => go(state.book.code, +e.target.value));
+    $("prev").addEventListener("click", () => step(-1));
+    $("next").addEventListener("click", () => step(1));
+    $("close-panel").addEventListener("click", closePanel);
+
+    const teamim = $("opt-teamim"), segments = $("opt-segments");
+    teamim.checked = state.opts.teamim;
+    segments.checked = state.opts.segments;
+    teamim.addEventListener("change", () => { state.opts.teamim = teamim.checked; saveOpts(); rerender(); });
+    segments.addEventListener("change", () => { state.opts.segments = segments.checked; saveOpts(); rerender(); });
+    $("smaller").addEventListener("click", () => resize(-2));
+    $("larger").addEventListener("click", () => resize(2));
+
+    const text = $("text");
+    const activate = (el) => showWord(+el.dataset.v, +el.dataset.i, +el.dataset.q);
+    text.addEventListener("click", (e) => {
+      const el = e.target.closest(".w");
+      if (el) activate(el);
+    });
+    text.addEventListener("keydown", (e) => {
+      const el = e.target.closest(".w");
+      if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); activate(el); }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closePanel();
+    });
+    window.addEventListener("hashchange", () => {
+      const t = parseHash();
+      if (!state.book || t.code !== state.book.code || t.chapter !== state.chapter) go(t.code, t.chapter);
+    });
+  }
+
+  function rerender() {
+    const sel = state.selected;
+    renderChapter();
+    if (sel) showWord(sel.v, sel.i, sel.q);
+  }
+
+  function resize(d) {
+    state.opts.size = Math.max(18, Math.min(48, state.opts.size + d));
+    saveOpts();
+    document.documentElement.style.setProperty("--text-size", state.opts.size + "px");
+  }
+
+  async function step(d) {
+    const idx = state.books.findIndex((b) => b.code === state.book.code);
+    let ch = state.chapter + d;
+    if (ch < 0 && idx > 0) return go(state.books[idx - 1].code, state.books[idx - 1].chapters - 1);
+    if (ch >= state.books[idx].chapters && idx < state.books.length - 1) return go(state.books[idx + 1].code, 0);
+    return go(state.book.code, ch);
+  }
+
+  async function init() {
+    bind();
+    try {
+      const [books, lexicon] = await Promise.all([getJSON("data/books.json"), getJSON("data/lexicon.json")]);
+      state.books = books;
+      state.lexicon = lexicon;
+      fillBookSelect();
+      const t = parseHash();
+      await go(t.code, t.chapter);
+    } catch (err) {
+      $("text").innerHTML = '<p class="error">שגיאה בטעינת הנתונים: ' + esc(err.message) +
+        "<br>יש להריץ את האתר דרך שרת (למשל <code dir=\"ltr\">python3 -m http.server</code>) ולא ישירות מהקובץ.</p>";
+    }
+  }
+
+  init();
+})();
