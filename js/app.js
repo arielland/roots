@@ -7,6 +7,7 @@
     chapter: 0,
     lexicon: null,
     selected: null,
+    view: "read",
     opts: loadOpts(),
   };
   const bookCache = {};
@@ -98,14 +99,50 @@
     state.book = await loadBook(code);
     state.chapter = chapter;
     const hash = "#" + code + "." + (chapter + 1);
-    if (location.hash !== hash) history.replaceState(null, "", hash);
+    if (state.view === "read" && location.hash !== hash) history.replaceState(null, "", hash);
     try { localStorage.setItem("roots-last", JSON.stringify({ code, chapter })); } catch (e) { /* ignore */ }
     fillChapterSelect(meta);
     $("book").value = code;
     $("chapter").value = chapter;
     closePanel();
     renderChapter();
+    if (state.view === "read") window.scrollTo(0, 0);
+    document.dispatchEvent(new CustomEvent("roots:chapter"));
+  }
+
+  // ------------------------------------------------------------ views
+
+  const VIEWS = ["read", "search", "practice"];
+
+  function setView(view, updateHash = true) {
+    state.view = view;
+    for (const v of VIEWS) {
+      $("view-" + v).hidden = v !== view;
+      document.querySelector('.tab[data-view="' + v + '"]').classList.toggle("active", v === view);
+    }
+    document.body.dataset.view = view;
+    if (view !== "read") closePanel();
+    if (updateHash) {
+      const hash = view === "read" && state.book ? "#" + state.book.code + "." + (state.chapter + 1) : "#" + view;
+      if (location.hash !== hash) history.pushState(null, "", hash);
+    }
+    document.dispatchEvent(new CustomEvent("roots:view", { detail: view }));
     window.scrollTo(0, 0);
+  }
+
+  /** Open the reader at a word and show its analysis. */
+  async function goToWord(code, chapter, v, i, q) {
+    setView("read", false);
+    if (!state.book || state.book.code !== code || state.chapter !== chapter) await go(code, chapter);
+    else history.replaceState(null, "", "#" + code + "." + (chapter + 1));
+    showWord(v, i, q);
+    const el = $("text").querySelector(".w.selected");
+    if (el) el.scrollIntoView({ block: "center" });
+  }
+
+  function viewFromHash() {
+    const m = location.hash.match(/^#(search|practice)\b/);
+    return m ? m[1] : "read";
   }
 
   // ------------------------------------------------------------ rendering
@@ -271,7 +308,8 @@
       h.push('<p class="consensus">המילונים מסכימים על השורש.</p>');
     }
     for (const r of roots) {
-      h.push('<div class="root-card"><div class="root-letters">' + esc(Roots.displayRoot(r.root)) + "</div>");
+      h.push('<div class="root-card"><div class="root-head"><span class="root-letters">' + esc(Roots.displayRoot(r.root)) + "</span>" +
+        '<button type="button" class="link" data-root="' + esc(r.root) + '">כל המילים מהשורש בתנ"ך ←</button></div>');
       h.push('<ul class="sources">');
       for (const s of r.sources) {
         const bits = [];
@@ -341,6 +379,13 @@
     $("prev").addEventListener("click", () => step(-1));
     $("next").addEventListener("click", () => step(1));
     $("close-panel").addEventListener("click", closePanel);
+    $("panel-body").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-root]");
+      if (b && window.Search) {
+        document.getElementById("search-scope").value = "all";
+        Search.openRoot(b.dataset.root);
+      }
+    });
 
     const teamim = $("opt-teamim"), segments = $("opt-segments");
     teamim.checked = state.opts.teamim;
@@ -363,10 +408,18 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") closePanel();
     });
-    window.addEventListener("hashchange", () => {
+    document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
+    window.addEventListener("popstate", onHash);
+    window.addEventListener("hashchange", onHash);
+  }
+
+  function onHash() {
+    const view = viewFromHash();
+    if (view !== state.view) setView(view, false);
+    if (view === "read") {
       const t = parseHash();
       if (!state.book || t.code !== state.book.code || t.chapter !== state.chapter) go(t.code, t.chapter);
-    });
+    }
   }
 
   function rerender() {
@@ -397,12 +450,20 @@
       state.lexicon = lexicon;
       fillBookSelect();
       const t = parseHash();
+      const view = viewFromHash();
+      state.view = view;
       await go(t.code, t.chapter);
+      setView(view, false);
     } catch (err) {
       $("text").innerHTML = '<p class="error">שגיאה בטעינת הנתונים: ' + esc(err.message) +
         "<br>יש להריץ את האתר דרך שרת (למשל <code dir=\"ltr\">python3 -m http.server</code>) ולא ישירות מהקובץ.</p>";
     }
   }
+
+  window.App = {
+    state, go, goToWord, setView, getJSON, loadBook, hebNum, esc, clean, cleanSeg,
+    mainLemmaOf, rootKeysFor,
+  };
 
   init();
 })();

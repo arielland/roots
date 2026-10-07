@@ -246,7 +246,8 @@ function analyzeWord(text, lemma, morph) {
     const ctx = {
       letter: lem ? PREFIX_LETTER[lem] : null,
       nextConj: i === mainIdx - 1 || (i < mainIdx && codes[i + 1] && codes[i + 1][0] === "V") ? nextConj : null,
-      host: mainCode[0] === "V" ? "verb" : mainCode[0] === "R" ? "prep" : "noun",
+      // On an infinitive construct the suffix is usually the subject (בְּעָמְדָם = בעמידתם).
+      host: mainCode[0] === "V" && mainCode[2] !== "c" ? "verb" : mainCode[0] === "R" ? "prep" : "noun",
       afterMain: i > mainIdx,
     };
     const parsed = parseSegment(code, lang, ctx);

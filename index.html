@@ -12,13 +12,18 @@
 <body>
   <header class="topbar">
     <h1 class="brand">שורשים</h1>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-view="read" role="tab">קריאה</button>
+      <button class="tab" data-view="search" role="tab">חיפוש</button>
+      <button class="tab" data-view="practice" role="tab">תרגול</button>
+    </div>
     <nav class="nav">
       <select id="book" aria-label="ספר"></select>
       <button id="prev" class="icon" title="הפרק הקודם" aria-label="הפרק הקודם">›</button>
       <select id="chapter" aria-label="פרק"></select>
       <button id="next" class="icon" title="הפרק הבא" aria-label="הפרק הבא">‹</button>
     </nav>
-    <div class="options">
+    <div class="options read-only">
       <label title="הצגת טעמי המקרא"><input type="checkbox" id="opt-teamim"> טעמים</label>
       <label title="צביעת תחיליות וסופיות"><input type="checkbox" id="opt-segments" checked> חלקי מילה</label>
       <button id="smaller" class="icon" title="הקטנת גופן" aria-label="הקטנת גופן">א-</button>
@@ -26,7 +31,7 @@
     </div>
   </header>
 
-  <main class="layout">
+  <main class="layout" id="view-read">
     <article id="text" class="text" aria-live="polite">
       <p class="loading">טוען…</p>
     </article>
@@ -35,6 +40,58 @@
       <div id="panel-body"></div>
     </aside>
   </main>
+
+  <section id="view-search" class="view" hidden>
+    <form id="search-form" class="card search-form" autocomplete="off">
+      <div class="seg-control" role="radiogroup" aria-label="סוג חיפוש">
+        <label><input type="radio" name="mode" value="word" checked> חיפוש מילה</label>
+        <label><input type="radio" name="mode" value="root"> חיפוש לפי שורש</label>
+      </div>
+      <div class="search-row">
+        <input id="search-q" type="search" class="heb-input" placeholder="הקלידו מילה, למשל: מלך" aria-label="מילת חיפוש">
+        <button type="submit" class="primary">חיפוש</button>
+      </div>
+      <div class="search-row small">
+        <label>היקף:
+          <select id="search-scope">
+            <option value="book">הספר הנוכחי</option>
+            <option value="all">כל התנ"ך</option>
+          </select>
+        </label>
+        <label class="word-only">התאמה:
+          <select id="search-match">
+            <option value="word">מילה שלמה (גם עם תחיליות)</option>
+            <option value="part">חלק ממילה</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint" id="search-hint">ניתן להקליד עם ניקוד (התאמה מדויקת לניקוד) או בלי ניקוד.</p>
+    </form>
+    <div id="search-status" class="status"></div>
+    <div id="search-results"></div>
+  </section>
+
+  <section id="view-practice" class="view" hidden>
+    <div class="card practice-settings">
+      <label>מקור:
+        <select id="practice-source">
+          <option value="chapter">הפרק הנוכחי</option>
+          <option value="book">הספר הנוכחי</option>
+        </select>
+      </label>
+      <label>סוג תרגיל:
+        <select id="practice-type">
+          <option value="mixed">מעורב</option>
+          <option value="root">זיהוי שורש</option>
+          <option value="binyan">זיהוי בניין</option>
+          <option value="tense">זיהוי זמן / צורה</option>
+          <option value="pgn">גוף, מין ומספר</option>
+        </select>
+      </label>
+      <div class="score" id="practice-score"></div>
+    </div>
+    <div class="card practice-card" id="practice-card"></div>
+  </section>
 
   <footer class="footer">
     לחצו על מילה כדי לראות את השורש, הבניין והנטייה שלה.
@@ -47,5 +104,7 @@
   <script src="js/morph.js"></script>
   <script src="js/roots.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/practice.js"></script>
 </body>
 </html>
