@@ -256,6 +256,10 @@
       '<div class="fb-actions"><button type="button" class="primary" id="next-q">לשאלה הבאה ←</button>' +
       '<button type="button" id="show-in-text">הצגה בטקסט</button></div>';
     $("next-q").focus();
+    if (window.Cheat) {
+      const it = question.item;
+      Cheat.focusWord({ analysis: it.analysis, roots: it.roots, entry: App.state.lexicon[it.analysis.mainLemma], label: App.clean(it.word[0]) });
+    }
     renderScore();
   }
 

@@ -267,6 +267,7 @@
     document.querySelector(".layout").classList.remove("with-panel");
     document.body.classList.remove("panel-open");
     $("text").querySelectorAll(".w.selected, .w.same-root").forEach((e) => e.classList.remove("selected", "same-root"));
+    if (window.Cheat) Cheat.clearFocus();
   }
 
   const ROLE = { prefix: "תחילית", main: "בסיס", suffix: "סופית" };
@@ -283,7 +284,8 @@
 
     const h = [];
     h.push('<p class="word-title">' + esc(clean(text)) + "</p>");
-    h.push('<div class="word-ref">' + esc(ref) + (a.lang === "A" ? " · ארמית" : "") + "</div>");
+    h.push('<div class="word-ref">' + esc(ref) + (a.lang === "A" ? " · ארמית" : "") +
+      ' · <button type="button" class="link" data-cheat="">בלוח העזר</button></div>');
     const he = state.glosses[a.mainLemma];
     if (he) {
       h.push('<p class="gloss-he"><b>' + esc(he.g) + '</b> <span class="ai-badge" title="הפירוש נוצר אוטומטית בעזרת מודל שפה, על סמך המילונים BDB וסטרונג. ייתכנו טעויות.">פירוש ממוחשב</span>' +
@@ -342,6 +344,14 @@
         : "אין בפרק זה מילים נוספות מאותו שורש.") + "</p>");
     }
 
+    // --- noun pattern
+    const mishkal = window.Cheat ? Cheat.mishkalFor(entry, roots, a.main.code) : null;
+    if (mishkal) {
+      h.push("<h3>משקל</h3><p class=\"mishkal\">" + '<b class="heb-inline">' + esc(mishkal.item.name) + "</b> " +
+        '<span class="muted">(' + esc(mishkal.group.title) + ", לפי צורת המילון <span class=\"heb-inline\">" + esc(clean(entry.w)) + "</span>; זיהוי אוטומטי)</span> " +
+        '<button type="button" class="link" data-cheat="' + mishkal.item.id + '">בלוח העזר ←</button></p>');
+    }
+
     // --- grammar notes
     const notes = a.segments.flatMap((s) => s.notes);
     if (notes.length) {
@@ -363,6 +373,7 @@
     h.push('<p class="muted">קוד ניתוח: <code dir="ltr">' + esc(morph) + "</code> · למה: <code dir=\"ltr\">" + esc(lemma) + "</code></p>");
 
     $("panel-body").innerHTML = h.join("");
+    if (window.Cheat) Cheat.focusWord({ analysis: a, roots, entry, mishkal, label: clean(text) });
     $("panel").hidden = false;
     $("panel").scrollTop = 0;
     document.querySelector(".layout").classList.add("with-panel");
@@ -387,6 +398,12 @@
     $("next").addEventListener("click", () => step(1));
     $("close-panel").addEventListener("click", closePanel);
     $("panel-body").addEventListener("click", (e) => {
+      const c = e.target.closest("[data-cheat]");
+      if (c && window.Cheat) {
+        if (c.dataset.cheat) Cheat.show(c.dataset.cheat);
+        else Cheat.setOpen(true);
+        return;
+      }
       const b = e.target.closest("[data-root]");
       if (b && window.Search) {
         document.getElementById("search-scope").value = "all";
