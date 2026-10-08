@@ -481,3 +481,26 @@ mark { background: var(--selected); color: inherit; border-radius: 3px; padding:
   /* On phones the sheet covers the reader (and the word panel) until it is closed. */
   .cheatsheet { width: 100vw; z-index: 25; border-right: none; }
 }
+
+/* ---- commentaries (Sefaria) ---- */
+.verse-num { cursor: pointer; border-radius: 4px; padding: 0 2px; }
+.verse-num:hover, .verse-num.active { background: var(--accent-soft); }
+.verse-num:focus-visible { outline: 2px solid var(--accent); }
+
+.panel-tabs { display: flex; gap: 4px; margin: 0 0 10px 32px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
+.ptab { flex: 1; border: none; background: none; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: var(--muted); }
+.ptab.active { background: var(--accent); color: var(--surface); }
+
+.verse-head { display: flex; align-items: center; gap: 8px; margin-inline-end: 32px; }
+.verse-title { font-weight: 700; color: var(--accent); }
+.verse-text { font-family: var(--heb); font-size: 21px; line-height: 1.7; margin: 8px 0 10px; }
+
+.comm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip { border-radius: 999px; padding: 2px 10px; font-size: 14px; }
+.chip.active { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+
+.comm { font-family: var(--heb); font-size: 18px; line-height: 1.7; margin: 0 0 10px; }
+.comm b, .comm strong { color: var(--accent); }
+.comm .badge { font-family: var(--ui); }
+.credit { margin-top: 12px; }
+.loading.small, .error.small { font-size: 14px; }
