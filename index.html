@@ -17,6 +17,7 @@
       <button class="tab" data-view="search" role="tab">חיפוש</button>
       <button class="tab" data-view="practice" role="tab">תרגול</button>
     </div>
+    <button id="toggle-sheet" class="sheet-toggle" aria-pressed="false" aria-controls="cheatsheet" title="בניינים, משקלים וכללים">לוח עזר</button>
     <nav class="nav">
       <select id="book" aria-label="ספר"></select>
       <button id="prev" class="icon" title="הפרק הקודם" aria-label="הפרק הקודם">›</button>
@@ -30,6 +31,23 @@
       <button id="larger" class="icon" title="הגדלת גופן" aria-label="הגדלת גופן">א+</button>
     </div>
   </header>
+
+  <aside id="cheatsheet" class="cheatsheet" hidden aria-label="לוח עזר">
+    <div id="cs-head" class="cs-head">
+      <div class="cs-top">
+        <h2>לוח עזר</h2>
+        <button id="cs-close" class="close" aria-label="סגירת לוח העזר">×</button>
+      </div>
+      <input id="cs-filter" type="search" placeholder="סינון, למשל: הפעיל, פ&quot;נ, נסמך" aria-label="סינון לוח העזר">
+      <div class="cs-actions">
+        <button type="button" id="cs-focus" disabled>למילה הנבחרת</button>
+        <button type="button" id="cs-expand">פתיחת הכול</button>
+        <button type="button" id="cs-collapse">סגירת הכול</button>
+      </div>
+      <div id="cs-context" class="cs-context"></div>
+    </div>
+    <div id="cs-tree" class="cs-tree"></div>
+  </aside>
 
   <main class="layout" id="view-read">
     <article id="text" class="text" aria-live="polite">
@@ -103,8 +121,10 @@
 
   <script src="js/morph.js"></script>
   <script src="js/roots.js"></script>
+  <script src="js/mishkal.js"></script>
   <script src="js/app.js"></script>
   <script src="js/search.js"></script>
   <script src="js/practice.js"></script>
+  <script src="js/cheatsheet.js"></script>
 </body>
 </html>

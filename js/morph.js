@@ -256,4 +256,4 @@ function analyzeWord(text, lemma, morph) {
   return { lang, segments, main: segments[mainIdx], mainLemma: lemmas[mainIdx] };
 }
 
-window.Morph = { analyzeWord, parseSegment };
+window.Morph = { analyzeWord, parseSegment, STEMS_HEB, STEMS_ARC, CONJ, SUFFIX_MEANING };

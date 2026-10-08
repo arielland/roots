@@ -381,3 +381,103 @@ mark { background: var(--selected); color: inherit; border-radius: 3px; padding:
   cursor: help;
 }
 .chip-gloss { font-size: 13px; }
+
+/* ---- cheat sheet (לוח עזר) ---- */
+:root { --sheet-w: 400px; --hit: #fff1c2; }
+@media (prefers-color-scheme: dark) { :root { --hit: #4a3d17; } }
+
+.sheet-toggle { font-weight: 600; }
+.sheet-toggle[aria-pressed="true"] { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+
+.cheatsheet {
+  position: fixed;
+  top: var(--topbar-h, 56px);
+  bottom: 0;
+  left: 0;
+  width: var(--sheet-w);
+  max-width: 100vw;
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: 6px 0 24px rgba(0, 0, 0, 0.12);
+  z-index: 15;
+  font-size: 15px;
+}
+@media (min-width: 1260px) {
+  body.sheet-open { padding-left: var(--sheet-w); }
+  .cheatsheet { top: 0; box-shadow: none; }
+}
+
+.cs-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cs-top { display: flex; justify-content: space-between; align-items: center; }
+.cs-top h2 { margin: 0; font-size: 18px; color: var(--accent); }
+.cs-top .close { border: none; background: none; font-size: 24px; line-height: 1; color: var(--muted); }
+#cs-filter {
+  font: inherit;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+}
+.cs-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.cs-actions button { font-size: 13px; padding: 2px 8px; }
+.cs-actions button:disabled { opacity: 0.5; cursor: default; }
+.cs-context { font-size: 13px; }
+.cs-context .chips { margin: 4px 0 0; }
+.cs-context .chip { font-size: 13px; padding: 1px 8px; }
+.cs-word { font-size: 20px; }
+
+.cs-tree { padding: 8px 10px 40px; }
+.cs-node { border-radius: 6px; }
+.cs-node > summary {
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  list-style-position: inside;
+}
+.cs-node > summary::-webkit-details-marker { margin-inline-end: 4px; }
+.cs-node > summary:hover { background: var(--accent-soft); }
+.cs-node.depth-0 { border-bottom: 1px solid var(--border); }
+.cs-node.depth-0 > summary { font-size: 17px; font-weight: 700; color: var(--accent); padding: 8px 6px; }
+.cs-node.depth-1 > summary { font-weight: 700; }
+.cs-title { font-family: var(--heb); font-size: 1.1em; }
+.depth-0 > summary .cs-title { font-family: var(--ui); font-size: 1em; }
+.cs-sub { font-size: 12px; color: var(--muted); font-weight: 400; font-family: var(--ui); }
+.cs-body { padding: 0 10px 6px 0; margin-inline-start: 10px; border-inline-start: 2px solid var(--border); }
+.depth-0 > .cs-body { border-inline-start: none; margin-inline-start: 0; padding-inline-start: 4px; }
+.cs-body p { margin: 6px 6px; line-height: 1.6; }
+.cs-ex { color: var(--muted); }
+.cs-ex .heb-inline { color: var(--text); }
+.cs-list { margin: 6px 0; padding-inline-start: 22px; line-height: 1.6; }
+
+.cs-node.hit > summary { background: var(--hit); box-shadow: inset 3px 0 0 var(--accent); }
+.cs-node.hit > summary .cs-title { font-weight: 700; }
+
+.cs-table { border-collapse: collapse; margin: 6px; font-size: 14px; width: calc(100% - 12px); }
+.cs-table th, .cs-table td { border: 1px solid var(--border); padding: 2px 6px; text-align: start; }
+.cs-table th { background: var(--bg); font-weight: 600; color: var(--muted); font-size: 12px; }
+.cs-table .heb-inline { font-size: 1.2em; }
+.cs-table tr.hit td { background: var(--hit); font-weight: 700; }
+
+.mishkal { margin: 0; font-size: 14px; }
+.mishkal .heb-inline { font-size: 1.3em; }
+.word-ref .link { font-size: 13px; }
+
+@media (max-width: 900px) {
+  /* On phones the sheet covers the reader (and the word panel) until it is closed. */
+  .cheatsheet { width: 100vw; z-index: 25; border-right: none; }
+}
