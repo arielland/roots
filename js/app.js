@@ -445,9 +445,9 @@
     const code = state.book.code, ch = state.chapter;
     const ref = state.book.name + " " + hebNum(ch + 1) + ", " + hebNum(v + 1);
     const head = [panelTabs("verse")];
-    head.push('<div class="verse-head"><button type="button" class="icon" data-verse-step="-1" title="הפסוק הקודם" aria-label="הפסוק הקודם"' + (v ? "" : " disabled") + '>›</button>' +
+    head.push('<div class="verse-head"><button type="button" class="verse-step" data-verse-step="-1" title="הפסוק הקודם"' + (v ? "" : " disabled") + '>→ הקודם</button>' +
       '<span class="verse-title">' + esc(ref) + "</span>" +
-      '<button type="button" class="icon" data-verse-step="1" title="הפסוק הבא" aria-label="הפסוק הבא"' + (v < verses.length - 1 ? "" : " disabled") + ">‹</button></div>");
+      '<button type="button" class="verse-step" data-verse-step="1" title="הפסוק הבא"' + (v < verses.length - 1 ? "" : " disabled") + ">הבא ←</button></div>");
     head.push('<p class="verse-text">' + esc(verseText(v)) + "</p>");
     const body = $("panel-body");
     const sefLink = '<a href="' + esc(Sefaria.sefariaLink(Sefaria.verseRef(code, ch, v))) + '" target="_blank" rel="noopener">הפסוק בספריא ←</a>';

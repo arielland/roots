@@ -492,6 +492,8 @@ mark { background: var(--selected); color: inherit; border-radius: 3px; padding:
 .ptab.active { background: var(--accent); color: var(--surface); }
 
 .verse-head { display: flex; align-items: center; gap: 8px; margin-inline-end: 32px; }
+.verse-step { font-size: 14px; padding: 2px 10px; }
+.verse-step:disabled { opacity: 0.4; cursor: default; }
 .verse-title { font-weight: 700; color: var(--accent); }
 .verse-text { font-family: var(--heb); font-size: 21px; line-height: 1.7; margin: 8px 0 10px; }
 
